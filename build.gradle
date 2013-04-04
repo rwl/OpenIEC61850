@@ -1,0 +1,147 @@
+
+configure(allprojects) {
+  apply plugin: 'java'
+  version = '0.14.4'
+}
+
+project.ext {
+  distributionProjects = subprojects.findAll {
+    it.getPath() == ':openiec61850-common' ||
+    it.getPath() == ':openiec61850-client' ||
+    it.getPath() == ':openiec61850-server' ||
+    it.getPath() == ':openiec61850-sample' ||
+    it.getPath() == ':jmms' ||
+    it.getPath() == ':jositransport'
+  }
+  
+  docProjects = distributionProjects.findAll {
+    it.getPath() == ':openiec61850-common' ||
+    it.getPath() == ':openiec61850-client' ||
+    it.getPath() == ':openiec61850-server'
+  }
+}
+
+configure(subprojects) {
+
+  apply plugin: 'eclipse'
+  apply plugin: 'osgi'
+  apply plugin: 'maven'
+
+  sourceCompatibility = 1.5
+  targetCompatibility = 1.5
+
+  repositories { mavenCentral()  }
+
+  jar {
+    manifest { version = project.version.replace('-','.'); }
+  }
+
+  dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.10'
+  }
+
+   task copyLibs(type: Copy) {
+    dependsOn(configurations.default.getAllArtifacts().getBuildDependencies())
+
+    into rootDir.getPath() + "/build/libs"
+    from configurations.default
+    from configurations.default.getAllArtifacts().getFiles()
+  }
+
+  build.dependsOn(copyLibs)
+
+  eclipse.pathVariables([GRADLE_USER_HOME:file(gradle.gradleUserHomeDir)])
+  tasks.eclipse.dependsOn(cleanEclipse)
+}
+
+jar.enabled = false
+
+task javadocs(type: Javadoc) {
+
+  source docProjects.collect {
+    project -> project.sourceSets.main.allJava
+  }
+
+  exclude '**/helper/**/*.java'
+
+  destinationDir = new File(buildDir, 'javadoc')
+
+  classpath = files(distributionProjects.collect { project ->
+    project.sourceSets.main.compileClasspath })
+}
+
+task writeSettings << {
+  Writer out = new OutputStreamWriter(new FileOutputStream("build/settings.gradle"));
+  out.write("include ");
+  boolean first = true;
+  for (Project myproject: distributionProjects) {
+    if (first == true) {
+      first = false;
+    }
+    else {
+      out.write ", ";
+    }
+    out.write "'" + myproject.name + "'"
+  }
+  out .write "\n\n";
+
+  for (Project myproject: distributionProjects) {
+    out.write 'project(":' + myproject.name + '").projectDir = file("' + myproject.getProjectDir().toString().substring((int)(getProjectDir().toString().size() + 1)) + '")\n';
+  }
+
+  out.close();
+}
+
+task (tar, type: Tar) {
+  dependsOn(writeSettings)
+  dependsOn(distributionProjects.build)
+  dependsOn(javadocs)
+
+  compression = Compression.GZIP
+
+  into(project.archivesBaseName) {
+    from('./') {
+      include 'src/common/src/**/*'
+      include 'src/common/build.gradle'
+
+      include 'src/client/src/**/*'
+      include 'src/client/build.gradle'
+
+      include 'src/server/src/**/*'
+      include 'src/server/build.gradle'
+
+      include 'src/sample/src/**/*'
+      include 'src/sample/build.gradle'
+      include 'src/sample/sampleServer/**/*'
+      exclude 'src/sample/sampleServer/**/*.sh'
+      include 'src/sample/sampleClient/**/*'
+      exclude 'src/sample/sampleClient/**/*.sh'
+
+      include 'src/mms/jmms/src/**/*'
+      include 'src/mms/jmms/build.gradle'
+      include 'src/mms/jmms/dependencies/**/*'
+      include 'src/mms/jmms/asn1/**/*'
+      include 'src/mms/jmms/doc/**/*'
+
+      include 'src/mms/jositransport/src/**/*'
+      include 'src/mms/jositransport/doc/**/*'
+      include 'src/mms/jositransport/sample/**/*'
+
+      include 'doc/**/*'
+      include 'licenses/**/*'
+      include 'build/libs/**/*'
+      include 'build/javadoc/**/*'
+      include 'build.gradle'
+    }
+
+    from('./build/') {
+      include 'settings.gradle'
+    }
+
+    from('./') {
+      fileMode = 0755
+      include 'src/sample/sampleServer/**/*.sh'
+      include 'src/sample/sampleClient/**/*.sh'
+    }
+  }
+}

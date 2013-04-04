@@ -1,0 +1,696 @@
+--
+-- Part of the ASN.1-Specification for MMS
+-- tries to include only those parts relevant for IEC 61850
+
+
+MMS { iso standard 9506 part(2) mms-general-module-version(2) }
+
+DEFINITIONS ::=
+
+BEGIN
+
+MmsPdu ::= CHOICE
+{
+	confirmedRequestPdu		[0] 	IMPLICIT ConfirmedRequestPdu,
+	confirmedResponsePdu	[1] 	IMPLICIT ConfirmedResponsePdu,
+	unconfirmedPDU			[3] 	IMPLICIT UnconfirmedPDU,
+	initiateRequestPdu		[8] 	IMPLICIT InitiateRequestPdu,
+	initiateResponsePdu		[9] 	IMPLICIT InitiateResponsePdu,
+	initiateErrorPdu		[10] 	IMPLICIT InitiateErrorPdu
+}
+
+
+UnconfirmedPDU ::= SEQUENCE
+{
+        unconfirmedService		UnconfirmedService
+--	cs-request-detail		[79] CS-Request-Detail OPTIONAL
+}
+	
+UnconfirmedService ::= CHOICE 
+{
+	informationReport		[0]	IMPLICIT InformationReport
+}
+
+ConfirmedRequestPdu ::= SEQUENCE
+{
+	invokeID			Unsigned32,
+	confirmedServiceRequest		ConfirmedServiceRequest
+}
+
+
+ConfirmedResponsePdu ::= SEQUENCE
+{
+	invokeID			Unsigned32,
+	confirmedServiceResponse	ConfirmedServiceResponse
+}
+
+ConfirmedServiceRequest  ::= CHOICE
+{
+	getNameList			[1] 	IMPLICIT GetNameListRequest,
+	read				[4]	IMPLICIT ReadRequest,
+	write				[5]	IMPLICIT WriteRequest,
+	getVariableAccessAttributes	[6]	GetVariableAccessAttributesRequest,
+	defineNamedVariableList		[11]	IMPLICIT DefineNamedVariableListRequest,
+	getNamedVariableListAttributes	[12] GetNamedVariableListAttributesRequest,
+	deleteNamedVariableList		[13]	IMPLICIT DeleteNamedVariableListRequest
+}
+
+ConfirmedServiceResponse  ::= CHOICE
+{
+	getNameList			[1] 	IMPLICIT GetNameListResponse,
+	read				[4]	IMPLICIT ReadResponse,
+	write				[5]	IMPLICIT WriteResponse,
+	getVariableAccessAttributes	[6]	IMPLICIT GetVariableAccessAttributesResponse,
+	defineNamedVariableList		[11]	IMPLICIT DefineNamedVariableListResponse,
+	getNamedVariableListAttributes	[12]	IMPLICIT GetNamedVariableListAttributesResponse,
+	deleteNamedVariableList		[13]	IMPLICIT DeleteNamedVariableListResponse
+}
+
+--********************************** COMMON MMS TYPES ***********************************
+
+TimeOfDay ::= OCTET STRING -- (SIZE (4 | 6))
+
+Identifier ::= VisibleString
+
+Integer8  ::= INTEGER(-128..127)		-- range -128 <= i <= 127
+Integer16 ::= INTEGER(-32768..32767)		-- range -32,768 <= i <= 32,767
+Integer32 ::= INTEGER(-2147483648..2147483647)	-- range -2**31 <= i <= 2**31 - 1
+
+Unsigned8  ::= INTEGER(0..255)
+Unsigned16 ::= INTEGER(0..65535)
+Unsigned32 ::= INTEGER(0..4294967295)
+
+MMSString ::= UTF8String
+
+UtcTime ::= OCTET STRING (SIZE (8))
+
+ObjectName ::= CHOICE {
+	vmd_specific		[0] IMPLICIT Identifier,
+	domain_specific		[1] IMPLICIT SEQUENCE {
+		domainId 	Identifier,
+		itemId		Identifier
+	},
+	aa_specific		[2] IMPLICIT Identifier
+}
+
+
+-- ************************************ GENERAL *************************************
+
+InitiateErrorPdu ::= ServiceError
+
+InitiateRequestPdu ::= SEQUENCE {
+	localDetailCalling			[0] IMPLICIT Integer32 OPTIONAL,
+	proposedMaxServOutstandingCalling	[1] IMPLICIT Integer16,
+	proposedMaxServOutstandingCalled	[2] IMPLICIT Integer16,
+	proposedDataStructureNestingLevel	[3] IMPLICIT Integer8 OPTIONAL,
+	mmsInitRequestDetail			[4] IMPLICIT InitRequestDetail
+}
+
+InitRequestDetail ::= SEQUENCE {
+	proposedVersionNumber			[0] IMPLICIT Integer16,
+	proposedParameterCBB			[1] IMPLICIT ParameterSupportOptions,
+	servicesSupportedCalling		[2] IMPLICIT ServiceSupportOptions
+}
+
+InitiateResponsePdu ::= SEQUENCE {
+	localDetailCalled			[0] IMPLICIT Integer32 OPTIONAL,
+	negotiatedMaxServOutstandingCalling	[1] IMPLICIT Integer16,
+	negotiatedMaxServOutstandingCalled	[2] IMPLICIT Integer16,
+	negotiatedDataStructureNestingLevel	[3] IMPLICIT Integer8 OPTIONAL,
+	mmsInitResponseDetail			[4] IMPLICIT InitResponseDetail
+}
+
+InitResponseDetail ::= SEQUENCE {
+	negotiatedVersionNumber			[0] IMPLICIT Integer16,
+	negotiatedParameterCBB			[1] IMPLICIT ParameterSupportOptions,
+	servicesSupportedCalled			[2] IMPLICIT ServiceSupportOptions
+}
+
+
+ParameterSupportOptions ::= BIT STRING {
+	str1 (0), str2 (1), vnam (2), valt (3), vadr (4), vsca (5), tpy  (6), vlis (7), real (8), cei  (10)
+}
+
+
+ServiceSupportOptions ::= BIT STRING
+	{
+	status					(0),
+	getNameList				(1),
+	identify				(2),
+	rename					(3),
+	read					(4),
+	write					(5),
+	getVariableAccessAttributes		(6),
+	defineNamedVariable			(7),
+	defineScatteredAccess			(8),
+	getScatteredAccessAttributes		(9),
+	deleteVariableAccess			(10),
+	defineNamedVariableList			(11),
+	getNamedVariableListAttributes		(12),
+	deleteNamedVariableList			(13),
+	defineNamedType				(14),
+	getNamedTypeAttributes			(15),
+	deleteNamedType				(16),
+	input					(17),
+	output					(18),
+	takeControl				(19),
+	relinquishControl			(20),
+	defineSemaphore				(21),
+	deleteSemaphore				(22),
+	reportSemaphoreStatus			(23),
+	reportPoolSemaphoreStatus		(24),
+	reportSemaphoreEntryStatus		(25),
+	initiateDownloadSequence		(26),
+	downloadSegment				(27),
+	terminateDownloadSequence		(28),
+	initiateUploadSequence			(29),
+	uploadSegment				(30),
+	terminateUploadSequence			(31),
+	requestDomainDownload			(32),
+	requestDomainUpload			(33),
+	loadDomainContent			(34),
+	storeDomainContent			(35),
+	deleteDomain				(36),
+	getDomainAttributes			(37),
+	createProgramInvocation			(38),
+	deleteProgramInvocation			(39),
+	start					(40),
+	stop					(41),
+	resume					(42),
+	reset					(43),
+	kill					(44),
+	getProgramInvocationAttributes		(45),
+	obtainFile				(46),
+	defineEventCondition			(47),
+	deleteEventCondition			(48),
+	getEventConditionAttributes		(49),
+	reportEventConditionStatus		(50),
+	alterEventConditionMonitoring		(51),
+	triggerEvent				(52),
+	defineEventAction			(53),
+	deleteEventAction			(54),
+	getEventActionAttributes		(55),
+	reportEventActionStatus			(56),
+	defineEventEnrollment			(57),
+	deleteEventEnrollment			(58),
+	alterEventEnrollment			(59),
+	reportEventEnrollmentStatus		(60),
+	getEventEnrollmentAttributes		(61),
+	acknowledgeEventNotification		(62),
+	getAlarmSummary				(63),
+	getAlarmEnrollmentSummary		(64),
+	readJournal				(65),
+	writeJournal				(66),
+	initializeJournal			(67),
+	reportJournalStatus			(68),
+	createJournal				(69),
+	deleteJournal				(70),
+	getCapabilityList			(71),
+	fileOpen				(72),
+	fileRead				(73),
+	fileClose				(74),
+	fileRename				(75),
+	fileDelete				(76),
+	fileDirectory				(77),
+	unsolicitedStatus			(78),
+	informationReport			(79),
+	eventNotification			(80),
+	attachToEventCondition			(81),
+	attachToSemaphore			(82),
+	conclude				(83),
+	cancel					(84)
+	}
+
+------------------------------ Service_Error --------------------------------
+
+ServiceError ::= SEQUENCE 
+	{	
+	errorClass	[0] CHOICE
+		{ 
+		vmd_state 	[0] IMPLICIT INTEGER  	
+			{	
+			other 					(0),			       
+			vmd-state-conflict 			(1),		
+			vmd-operational-problem 		(2), 
+			domain-transfer-problem 		(3),	
+			state-machine-id-invalid 		(4)	
+                  	},
+		application_reference 	[1] IMPLICIT INTEGER
+		       	{
+			other 					(0),
+			aplication-unreachable 			(1),
+			connection-lost 			(2),
+			application-reference-invalid 		(3),
+			context-unsupported 			(4)
+			},
+		definition 			[2] IMPLICIT INTEGER
+			{
+			other 					(0),
+			object-undefined 			(1),
+			invalid-address 			(2),
+			type-unsupported 			(3),
+			type-inconsistent 			(4),
+			object-exists 				(5),
+			object-attribute-inconsistent  	        (6)
+			},
+		resource 			[3] IMPLICIT INTEGER
+			{
+			other 					(0),
+			memory-unavailable			(1),
+			processor-resource-unavailable		(2),
+			mass-storage-unavailable		(3),
+			capability-unavailable			(4),
+			capability-unknown			(5)
+		       	},
+		service 			[4] IMPLICIT INTEGER
+			{	
+			other 					(0),
+			primitives-out-of-sequence		(1),
+			object-state-conflict			(2),
+			pdu-size				(3),
+			continuation-invalid			(4),
+			object-constraint-conflict		(5)
+		      	},
+		service_preempt 		[5] IMPLICIT INTEGER
+		      	{	
+			other					(0),
+			timeout					(1),
+			deadlock				(2),
+			cancel					(3)
+		      	},
+		time_resolution 		[6] IMPLICIT INTEGER
+		      	{	
+			other					(0),
+			unsupportable-time-resolution 		(1)
+		      	},
+		access	 			[7] IMPLICIT INTEGER
+		      	{
+			other					(0),
+			object-access-unsupported		(1),
+			object-non-existent			(2),
+			object-access-denied			(3),
+			object-invalidated			(4)
+		 	},
+		initiate 			[8] IMPLICIT INTEGER
+		     	{
+			other					(0),
+			version-incompatible			(1),
+			max-segment-insufficient		(2),
+			max-services-outstanding-calling-insufficient (3),
+			max-services-outstanding-called-insufficient  (4),
+			service-CBB-insufficient		(5),
+			parameter-CBB-insufficient		(6),
+			nesting-level-insufficient		(7)
+			},
+		conclude 			[9] IMPLICIT INTEGER
+		     	{
+			other					(0),
+			further-communication-required 		(1)
+			},
+		cancel 				[10] IMPLICIT INTEGER
+		     	{
+			other					(0),
+			invoke-id-unknown			(1),
+			cancel-not-possible			(2)
+			},
+		file 				[11] IMPLICIT INTEGER
+		     	{
+			other					(0),
+			filename-ambiguous			(1),
+			file-busy				(2),
+			filename-syntax_Error			(3),
+			content-type-invalid			(4),
+			position-invalid			(5),
+			file-acces-denied			(6),
+			file-non-existent			(7),
+			duplicate-filename			(8),
+			insufficient-space-in-filestore		(9)
+			},
+		others	 		        [12] IMPLICIT INTEGER
+	        },
+	additionalCode			[1] IMPLICIT INTEGER OPTIONAL,
+	additionalDescription 		[2] IMPLICIT VisibleString OPTIONAL
+--	serviceSpecificInformation	[3] CHOICE
+--			{
+--			obtainFile			[0] IMPLICIT ObtainFile_Error,
+--			start				[1] IMPLICIT Start_Error,
+--			stop				[2] IMPLICIT Stop_Error,
+--			resume				[3] IMPLICIT Resume_Error,
+--			reset				[4] IMPLICIT Reset_Error,
+--			deleteVariableAccess		[5] IMPLICIT DeleteVariableAccess_Error,
+--			deleteNamedVariableList		[6] IMPLICIT DeleteNamedVariableList_Error,
+--			deleteNamedType			[7] IMPLICIT DeleteNamedType_Error,
+--			defineEventEnrollment_Error	[8] DefineEventEnrollment_Error,
+--			fileRename			[9] IMPLICIT FileRename_Error
+-- this one is neither in this ASN nor in the IMPORTS
+--			additionalService		[10] AdditionalServiceError
+--			} OPTIONAL
+	}
+
+
+-- GETNAMELIST
+
+GetNameListRequest ::= SEQUENCE {
+	objectClass [0] ObjectClass,
+	objectScope 		[1] CHOICE {
+		vmdSpecific		[0] IMPLICIT NULL,
+		domainSpecific		[1] IMPLICIT Identifier,
+		aaSpecific		[2] IMPLICIT NULL
+	},
+	continueAfter 	[2] IMPLICIT Identifier OPTIONAL
+}
+
+--in other implementations basicObjectClass is named extendObjectClass (see syntax from sisco (mms-uniroma.asn)
+ObjectClass ::= CHOICE {
+	basicObjectClass [0] IMPLICIT INTEGER {
+		namedVariable (0),
+		scatteredAccess (1),
+		namedVariableList (2),
+		namedType (3),
+		semaphore (4),
+		eventCondition (5),
+		eventAction (6),
+		eventEnrollment (7),
+		journal (8),
+		domain (9),
+		programInvocation (10),
+		operatorStation (11),
+		dataExchange (12), -- Shall not appear in minor version 1
+		accessControlList (13) -- Shall not appear in minor version 1 or 2
+	}
+}
+
+GetNameListResponse ::= SEQUENCE {
+	listOfIdentifier	[0] IMPLICIT SEQUENCE OF Identifier,
+	moreFollows		[1] IMPLICIT BOOLEAN DEFAULT TRUE
+}
+
+
+
+
+-- *********************************** VARIABLES ****************************************
+
+
+TypeSpecification ::= CHOICE {
+--	typeName		[0] ObjectName,
+	array			[1] IMPLICIT SEQUENCE
+		{
+		packed			[0] IMPLICIT BOOLEAN DEFAULT FALSE,
+		numberOfElements	[1] IMPLICIT Unsigned32,
+		elementType		[2] TypeSpecification
+		},
+	structure		[2] IMPLICIT SEQUENCE
+		{
+		packed			[0] IMPLICIT BOOLEAN DEFAULT FALSE,
+		components		[1] IMPLICIT SEQUENCE OF StructComponent
+		},
+
+	-- Simple Type
+	boolean_		[3] IMPLICIT NULL,
+	bit_string		[4] IMPLICIT Integer32,
+	integer			[5] IMPLICIT Unsigned8,
+	unsigned		[6] IMPLICIT Unsigned8,
+	floating_point 	[7] IMPLICIT SEQUENCE {
+		format_width Unsigned8, 
+		-- number of bits of
+		-- floating point value
+		-- including sign, exponent,
+		-- and fraction
+		exponent_width Unsigned8 -- size of exponent in bits
+	},
+	octet_string		[9] IMPLICIT Integer32,
+	visible_string		[10] IMPLICIT Integer32,
+	--commented out by Stefan Feuerhahn because it not needed for IEC 61850
+	--generalized_time	[11] IMPLICIT NULL,
+	binary_time			[12] IMPLICIT BOOLEAN,
+	--bcd					[13] IMPLICIT Unsigned8,
+	--objId				[15] IMPLICIT NULL,
+	-- für 61850-Unicode-String:
+	mms_string   		[16] IMPLICIT Integer32,
+	utc_time		[17] IMPLICIT NULL  -- UTC Time 
+}
+
+StructComponent ::=	SEQUENCE
+	{
+	componentName		[0] IMPLICIT Identifier OPTIONAL,
+	componentType		[1] TypeSpecification
+	}
+
+AlternateAccess ::= SEQUENCE OF CHOICE
+{
+	-- stefan replaced by choice
+	-- added to handle array access
+	selectAlternateAccess    [0] IMPLICIT SEQUENCE 
+	{
+		accessSelection
+                             CHOICE {component    [0] IMPLICIT Identifier,
+                                     index        [1] IMPLICIT Unsigned32,
+                                     indexRange
+                                       [2] IMPLICIT SEQUENCE {lowIndex
+                                                                [0] IMPLICIT Unsigned32,
+                                                              numberOfElements
+                                                                [1] IMPLICIT Unsigned32},
+                                     allElements  [3] IMPLICIT NULL},
+     	alternateAccess  AlternateAccess
+     },
+--	unnamed	AlternateAccessSelection,
+	component	[1] IMPLICIT Identifier,
+	index		[2] IMPLICIT Unsigned32,
+	indexRange	[3] IMPLICIT IndexRangeSeq,
+	allElements	[4] IMPLICIT NULL,	-- all array elements
+
+	named		[5] IMPLICIT SEQUENCE
+		{
+		componentName	[0] IMPLICIT Identifier,
+		accesst		AlternateAccessSelection
+		}
+	}
+
+AlternateAccessSelection ::= CHOICE
+	{
+-- added to handle array access	
+	selectAlternateAccess    [0] IMPLICIT SEQUENCE 
+	{component    [0] IMPLICIT Identifier,
+     index        [1] IMPLICIT Unsigned32,
+     indexRange   [2] IMPLICIT SEQUENCE 
+     	{lowIndex           [0] IMPLICIT Unsigned32,
+         numberOfElements   [1] IMPLICIT Unsigned32},
+     allElements  [3] IMPLICIT NULL,
+     alternateAccess  AlternateAccess},
+	
+--	selectAccess	CHOICE
+--		{     
+		component	[1] IMPLICIT Identifier,
+		index		[2] IMPLICIT Unsigned32,
+		indexRange	[3] IMPLICIT IndexRangeSeq,
+		allElements	[4] IMPLICIT NULL	-- all array elements
+--		}
+	}
+
+-- Created by Stefan:
+IndexRangeSeq ::=  SEQUENCE
+{
+	lowIndex	       	[0] IMPLICIT Unsigned32,
+	numberOfElements	[1] IMPLICIT Unsigned32
+}
+
+-- READ
+
+ReadRequest ::= SEQUENCE
+	{
+	specificationWithResult		[0] IMPLICIT BOOLEAN DEFAULT FALSE,
+	variableAccessSpecification	[1] VariableAccessSpecification
+	}
+
+
+ReadResponse ::= SEQUENCE
+	{
+	variableAccessSpecification [0] VariableAccessSpecification OPTIONAL,
+	listOfAccessResult	  [1] IMPLICIT SEQUENCE OF AccessResult
+	}
+
+-- WRITE
+
+
+
+WriteRequest ::= SEQUENCE
+	{
+	variableAccessSpecification 	VariableAccessSpecification,
+	listOfData			[0] IMPLICIT SEQUENCE OF Data
+	}
+
+WriteResponse ::= SEQUENCE OF CHOICE
+	{
+	failure		[0] IMPLICIT DataAccessError,
+	success		[1] IMPLICIT NULL
+	}
+
+
+-- GET VARIABLE ACCESS ATTRIBUTES
+
+GetVariableAccessAttributesRequest ::= CHOICE {
+	name		[0] ObjectName
+--	address		[1] Address
+}
+
+
+GetVariableAccessAttributesResponse ::= SEQUENCE
+	{
+	mmsDeletable		[0] IMPLICIT BOOLEAN,
+--	address			[1] Address OPTIONAL,
+	typeSpecification	[2] TypeSpecification
+	}
+
+-- INFORMATION REPORT
+
+InformationReport ::= SEQUENCE
+	{
+	variableAccessSpecification	VariableAccessSpecification,
+	listOfAccessResult		[0] IMPLICIT SEQUENCE OF AccessResult
+	}
+
+-- DEFINE NAMED VAR. LIST
+
+DefineNamedVariableListRequest ::= SEQUENCE
+	{
+	variableListName	ObjectName,
+	listOfVariable		[0] IMPLICIT SEQUENCE OF VariableDef
+	}
+
+
+DefineNamedVariableListResponse ::= NULL
+
+-- GET NAMED VAR. LIST ATTRIBUTES
+
+GetNamedVariableListAttributesRequest ::= ObjectName	-- VariableListName
+
+
+GetNamedVariableListAttributesResponse ::= SEQUENCE
+	{
+	mmsDeletable		[0] IMPLICIT BOOLEAN,
+	listOfVariable		[1] IMPLICIT SEQUENCE OF VariableDef
+	}
+
+-- DELETE NAMED VAR. LIST
+
+DeleteNamedVariableListRequest ::= SEQUENCE
+	{
+	scopeOfDelete		[0] IMPLICIT INTEGER
+		{
+		specific			(0),
+		aa-specific			(1),
+		domain				(2),
+		vmd				(3) 
+		} DEFAULT specific,
+	listOfVariableListName	[1] IMPLICIT SEQUENCE OF ObjectName OPTIONAL,
+	domainName			[2] IMPLICIT Identifier OPTIONAL
+	}
+
+
+DeleteNamedVariableListResponse ::= SEQUENCE
+	{
+	numberMatched	[0] IMPLICIT Unsigned32,
+	numberDeleted	[1] IMPLICIT Unsigned32
+	}
+
+
+--DeleteNamedVariableListError ::= Unsigned32	
+--number Deleted
+
+-- SUPPORT DEFINITIONS
+
+
+AccessResult ::= CHOICE
+	{
+	failure		[0] IMPLICIT DataAccessError,
+	success	Data
+	}
+
+
+DataAccessError ::= INTEGER
+	{
+	object_invalidated		(0),
+	hardware_fault			(1),
+	temporarily_unavailable		(2),
+	object_access_denied		(3),
+	object_undefined		(4),
+	invalid_address			(5),
+	type_unsupported		(6),
+	type_inconsistent		(7),
+	object_attribute_inconsistent	(8),
+	object_access_unsupported	(9),
+	object_non_existent		(10),
+	object_value_invalid		(11)
+	}
+
+
+
+Data ::= CHOICE
+{
+	-- context tag 0 is reserved for AccessResult
+	array			[1] IMPLICIT DataSequence,
+	structure		[2] IMPLICIT DataSequence,
+	boolean_		[3] IMPLICIT BOOLEAN,
+	bit_string		[4] IMPLICIT BIT STRING,
+	integer			[5] IMPLICIT INTEGER,
+	unsigned		[6] IMPLICIT INTEGER, -- shall not be negative
+	floating_point		[7] IMPLICIT FloatingPoint,
+	--			[8] is reserved
+	octet_string		[9] IMPLICIT OCTET STRING,
+	visible_string		[10] IMPLICIT VisibleString,
+	--generalized_time	[11] IMPLICIT GeneralizedTime,
+	binary_time		[12] IMPLICIT TimeOfDay,
+	--bcd			[13] IMPLICIT INTEGER,
+	--booleanArray		[14] IMPLICIT BIT STRING,
+	--objId			[15] IMPLICIT OBJECT IDENTIFIER
+	mms_string		[16] IMPLICIT MMSString, -- unicode string
+	utc_time		[17] IMPLICIT UtcTime   --UTC Time
+}
+
+DataSequence ::= SEQUENCE OF Data
+
+FloatingPoint ::= OCTET STRING
+
+
+VariableAccessSpecification ::= CHOICE
+	{
+	listOfVariable		[0] IMPLICIT SEQUENCE OF VariableDef,
+	variableListName	[1] ObjectName
+	}
+
+
+-- was added by Stefan Feuerhahn because it was redundantly defined in several tags
+VariableDef ::= SEQUENCE
+	{
+		variableSpecification	VariableSpecification,
+		alternateAccess		[5] IMPLICIT AlternateAccess OPTIONAL
+	}
+
+VariableSpecification ::= CHOICE
+	{
+	name				[0] ObjectName
+--	address				[1] Address,
+--	variableDescription		[2] IMPLICIT SEQUENCE
+--		{
+--		address			Address,
+--		typeSpecification	TypeSpecification
+--		},
+--	scatteredAccessDescription	[3] IMPLICIT ScatteredAccessDescription,
+--	invalidated			[4] IMPLICIT NULL
+	}
+
+ScatteredAccessDescription ::= SEQUENCE OF SEQUENCE
+	{
+	componentName		[0] IMPLICIT Identifier OPTIONAL,
+	variableSpecification	[1] VariableSpecification,
+	alternateAccess		[2] IMPLICIT AlternateAccess OPTIONAL
+	}
+
+--Address ::= CHOICE
+--	{
+--	numericAddress		[0] IMPLICIT Unsigned32,
+--	symbolicAddress		[1] IMPLICIT VisibleString,
+--	unconstrainedAddress	[2] IMPLICIT OCTET STRING
+--	}
+
+END

@@ -1,0 +1,8 @@
+
+dependencies {
+  compile project(':openiec61850-common')
+  compile project(':openiec61850-client')
+  compile project(':openiec61850-server')
+  compile group: 'org.slf4j', name: 'slf4j-api', version: '1.6.1'
+  compile group: 'ch.qos.logback', name: 'logback-classic', version: '0.9.29'
+}

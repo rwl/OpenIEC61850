@@ -1,0 +1,82 @@
+0.14.4 Okt-30-2012
+------------------
+- fixed another bug when decoding Float64 
+- getDataDefinition of all kinds of DataObjects and DataAttributes now possible
+- modified toString() function of most DataAttributes to print more valuable information
+
+0.14.3 Sep-18-2012
+------------------
+- fixed decoding of Float32 and Float64 
+- fixed getChildren(fc) Function in LogicalNode
+
+0.14.2 Aug-23-2012
+------------------
+- major refactoring to make code more efficient and easier to
+  maintain. Many classes have been renamed and/or relocated.
+- the ability to use different SCSM was completely removed because
+  only one mapping existed so far: the MMS mapping. No other Mapping
+  seems to have a chance against MMS simply because MMS is already in
+  use and works.
+- note that the syntax of the properties file for the StandaloneServer
+  changed a little, see the sampeServer for details
+
+0.12.0 Jul-31-2012
+------------------
+- changed from LGPLv3 to LGPLv2.1
+- replaced OCTET_STRING64, OCTET_STRING8 and so on with a general
+  OCTET_STRING class
+- the same was done for UNICODE_STRING and VISIBLE_STRING
+- client no longer hangs when receiving ApplError Reports
+
+0.11.0 Jul-02-2012
+------------------
+- new jASN1 version that can decode empty Object Identifiers
+- added mms authentication capability
+- fixed multi thread issues in TSAPConnection of MMS mapping
+- added FLOAT64 from IEC61400-2
+- added SampleReportClient to demonstrate how to use reporting with the client
+- some improvements to client receiver thread
+- some other small bug fixes
+
+0.10.0 Mai-14-2012
+------------------
+- restructuring: code moved to src folder
+- new jASN1 version which fixes bug in decoding empty bitstrings
+- receving "Check" data does not cause errors anymore
+- ASN.1 buffers are automatically resized in the client
+
+0.9.9 Mar-29-2012
+-----------------
+- added DataSet Services for client and server
+- added getReport methods and processReport for the client -> they
+  will get a report from the queue and return a report object with the
+  updated data
+- fixed getDataValues for array structures 
+- disabled sending SpecificationWithResult in read request because
+  some clients cannot cope with it
+- fixed bug in RFC 1006 part
+- added receiver thread in client so that reports can be received at any time
+- added VisibleString65 to be compatible with some version1.0 servers
+- avoid srcRef == 0 because some servers cannot cope with it 
+
+0.9.8 Feb-22-2012
+-----------------
+- fixed path in runSampleServer.sh and runSampleClient.sh
+
+0.9.7 Feb-21-2012
+-----------------
+- small bug fix in T-Sel encoding/decoding in TConnection.java -
+  thanks to Johannes Schmidt from University of Leipzig
+
+0.9.6 Feb-20-2012
+-----------------
+- when importing Eclipse projects: GRADLE_HOME was replaced by GRADLE_USER_HOME
+- removed duplicate entries from tar distribution file
+- Remote TSAPs can now be addressed using a T-Selector. The client can
+  set the T-Selector like this:
+  MmsScsmClientSAP clientSAP = new MmsScsmClientSAP();
+  clientSAP.acseSAP.tSAP.tSelRemote = new byte[] { 0, 1 };
+
+0.9.5 Feb-06-2012
+-----------------
+- first version

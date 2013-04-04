@@ -1,0 +1,8 @@
+include 'jmms', 'jositransport', 'openiec61850-client', 'openiec61850-common', 'openiec61850-sample', 'openiec61850-server'
+
+project(":jmms").projectDir = file("src/mms/jmms")
+project(":jositransport").projectDir = file("src/mms/jositransport")
+project(":openiec61850-client").projectDir = file("src/client")
+project(":openiec61850-common").projectDir = file("src/common")
+project(":openiec61850-sample").projectDir = file("src/sample")
+project(":openiec61850-server").projectDir = file("src/server")

@@ -1,0 +1,6 @@
+
+dependencies {
+  compile project(':jmms')
+  compile project(':openiec61850-common')
+  compile group: 'org.slf4j', name: 'slf4j-api', version: '1.6.1'
+}

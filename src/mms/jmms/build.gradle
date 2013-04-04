@@ -1,0 +1,5 @@
+
+dependencies {
+  compile project(':jositransport')
+  compile files('dependencies/jasn1-ber-1.1.3.jar')
+}
